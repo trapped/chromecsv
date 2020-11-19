@@ -9,7 +9,7 @@ https://code.google.com/p/chromium/codesearch#chromium/src/chrome/browser/passwo
 type LinuxCrypt struct {
 }
 
-func NewCrypt() crypt {
+func NewCrypt(loginsVer int, path string) crypt {
 	return &LinuxCrypt{}
 }
 

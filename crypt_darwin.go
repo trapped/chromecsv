@@ -11,7 +11,7 @@ http://dev.chromium.org/developers/design-documents/os-x-password-manager-keycha
 type DarwinCrypt struct {
 }
 
-func NewCrypt() crypt {
+func NewCrypt(loginsVer int, path string) crypt {
 	return &DarwinCrypt{}
 }
 

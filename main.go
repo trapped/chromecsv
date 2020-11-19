@@ -3,10 +3,11 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
 	"os"
 	"path"
 	"strings"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Status int
@@ -24,6 +25,10 @@ const (
 	pwdQuery     = `select
 	origin_url, username_value, password_value
 	from logins`
+	loginsVerQuery = `select
+	value
+	from meta
+	where key = 'version'`
 	outHeader = "uri,service,user,pass,tags\n"
 )
 
@@ -52,6 +57,17 @@ func main() {
 
 	p("Loading database...")
 	db, err := sql.Open("sqlite3", path)
+
+	p("Loading logins format version...")
+	row := db.QueryRow(loginsVerQuery)
+	var loginsVer int
+	if err := row.Scan(&loginsVer); err != nil {
+		p(err.Error())
+		exit(DatabaseFail)
+	}
+	p("Logins format version: ", loginsVer)
+
+	p("Loading logins...")
 	rows, err := db.Query(pwdQuery)
 	if err != nil {
 		p(err.Error())
@@ -68,7 +84,7 @@ func main() {
 	}
 	p("")
 
-	crypt := NewCrypt()
+	crypt := NewCrypt(loginsVer, path)
 
 	out, err := os.Create(outputFile)
 	if err != nil {
@@ -98,8 +114,8 @@ func escapeCSV(s *string) {
 	*s = strings.Replace(*s, `"`, `""`, -1)
 }
 
-func p(s string) {
-	fmt.Fprintln(os.Stderr, s)
+func p(s ...interface{}) {
+	fmt.Fprintln(os.Stderr, s...)
 }
 
 func exit(status Status) {
